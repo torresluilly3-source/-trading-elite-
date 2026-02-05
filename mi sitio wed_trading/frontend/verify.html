@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Email - Trading Elite</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .verification-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            padding: 20px;
+        }
+        
+        .verification-card {
+            background: var(--bg-card);
+            border: 2px solid var(--neon-green);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: modalSlideIn 0.4s ease;
+        }
+        
+        .verification-icon {
+            font-size: 4rem;
+            color: var(--neon-green);
+            margin-bottom: 20px;
+            animation: float 3s infinite;
+        }
+        
+        .verification-title {
+            color: var(--neon-green);
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .verification-message {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .verification-status {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 4px solid var(--neon-green);
+        }
+        
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top-color: var(--neon-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: var(--neon-green);
+            margin-bottom: 20px;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            color: var(--neon-red);
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-card">
+            <div class="verification-icon">
+                <i class="fas fa-envelope"></i>
+            </div>
+            
+            <h2 class="verification-title">Verificación de Email</h2>
+            
+            <p class="verification-message" id="message">
+                Estamos verificando tu cuenta. Por favor, espera un momento...
+            </p>
+            
+            <div class="verification-status" id="verification-status">
+                <div class="loader"></div>
+                <p style="margin-top: 15px;">Procesando verificación...</p>
+            </div>
+            
+            <div id="verification-result"></div>
+            
+            <div class="auth-footer" style="margin-top: 30px; display: none;" id="footer">
+                <p>¿Problemas con la verificación? <a href="mailto:soporte@tradingelite.com" class="auth-link">Contactar soporte</a></p>
+                <p><a href="index.html" class="auth-link"><i class="fas fa-arrow-left"></i> Volver al inicio</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const email = urlParams.get('email');
+            
+            const statusEl = document.getElementById('verification-status');
+            const resultEl = document.getElementById('verification-result');
+            const messageEl = document.getElementById('message');
+            const footerEl = document.getElementById('footer');
+            
+            if (!token || !email) {
+                showError('Faltan parámetros de verificación. Asegúrate de hacer clic en el enlace completo del email.');
+                return;
+            }
+            
+            try {
+                messageEl.textContent = `Verificando ${email}...`;
+                
+                // Llamar a la API para verificar
+                const response = await window.ApiClient.verifyEmail(token, email);
+                
+                if (response.success) {
+                    // ÉXITO
+                    statusEl.innerHTML = `
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 style="color: var(--neon-green); margin-top: 15px;">¡Email Verificado!</h3>
+                    `;
+                    
+                    resultEl.innerHTML = `
+                        <div style="margin-top: 20px;">
+                            <p>Tu cuenta ha sido verificada exitosamente.</p>
+                            <div style="background: rgba(0,255,255,0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+                                <p style="margin: 0;">
+                                    <strong>${response.data.user.name}</strong><br>
+                                    <small>${response.data.user.email}</small>
+                                </p>
+                            </div>
+                            <a href="index.html" class="btn btn-primary" style="margin-top: 15px;">
+                                <i class="fas fa-tachometer-alt"></i> Ir al Dashboard
+                            </a>
+                        </div>
+                    `;
+                    
+                    // Guardar token y usuario
+                    window.ApiClient.setToken(response.data.token);
+                    localStorage.setItem('current_user', JSON.stringify(response.data.user));
+                    
+                    messageEl.textContent = '¡Verificación completada! Ya puedes acceder a tu cuenta.';
+                    
+                } else {
+                    showError(response.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en verificación:', error);
+                showError(error.message || 'Error verificando email. Intenta nuevamente.');
+            } finally {
+                footerEl.style.display = 'block';
+            }
+        });
+        
+        function showError(message) {
+            const statusEl = document.getElementById('verification-status');
+            const resultEl = document.getElementById('verification-result');
+            const messageEl = document.getElementById('message');
+            
+            statusEl.innerHTML = `
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h3 style="color: var(--neon-red); margin-top: 15px;">Error de Verificación</h3>
+            `;
+            
+            resultEl.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <p style="color: var(--neon-red);"><strong>${message}</strong></p>
+                    <div style="margin-top: 20px;">
+                        <a href="index.html#pagos" class="btn btn-outline" style="margin-right: 10px;">
+                            <i class="fas fa-user-plus"></i> Registrarse nuevamente
+                        </a>
+                        <a href="index.html" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> Volver al inicio
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            messageEl.textContent = 'Hubo un problema con la verificación.';
+        }
+    </script>
+</body>
+</html>

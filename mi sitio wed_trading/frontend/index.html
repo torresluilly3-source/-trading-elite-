@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Lado Oculto de las Opciones Binarias</title>
+    
+    <!-- ===== TODOS LOS CSS ===== -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="forum.css">
+    <link rel="stylesheet" href="calendar.css">
+    <link rel="stylesheet" href="payments.css">
+    
+    <!-- Iconos FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fuentes Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Preload para mejor rendimiento -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="script.js" as="script">
+    
+    <style>
+        /* Estilos de carga inicial */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #ff0000, #00ffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 4px;
+            background: #222;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #00ffff);
+            width: 0%;
+            animation: loading 2s ease-in-out infinite;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; transform: translateX(0); }
+            50% { width: 100%; transform: translateX(0); }
+            100% { width: 100%; transform: translateX(300px); }
+        }
+        
+        /* Estilos temporales de respaldo */
+        .backup-content {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(15,15,25,0.8);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 2rem;
+        }
+        
+        .backup-content i {
+            font-size: 3rem;
+            color: #00ffff;
+            margin-bottom: 1.5rem;
+            animation: float 3s infinite;
+        }
+        
+        .backup-content h3 {
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+        
+        .backup-content p {
+            color: #cccccc;
+            max-width: 400px;
+            margin: 0 auto 1.5rem;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* FORZAR MODAL RESPONSIVE */
+        @media (max-width: 1400px) {
+            .auth-modal {
+                max-width: 90% !important;
+                width: 90% !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .auth-modal {
+                max-width: 95% !important;
+                width: 95% !important;
+                max-height: 95vh !important;
+            }
+            
+            .auth-modal-body {
+                padding: 1rem !important;
+                max-height: 70vh !important;
+                overflow-y: auto !important;
+            }
+            
+            .auth-plan-options {
+                grid-template-columns: 1fr !important;
+                gap: 0.5rem !important;
+            }
+            
+            .form-input {
+                padding: 0.75rem !important;
+                font-size: 16px !important;
+            }
+            
+            .auth-modal-header {
+                padding: 1rem !important;
+            }
+            
+            .auth-modal-header h3 {
+                font-size: 1.3rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .auth-modal {
+                max-width: 100% !important;
+                width: 100% !important;
+                max-height: 100vh !important;
+                border-radius: 0 !important;
+            }
+            
+            .auth-modal-body {
+                padding: 0.75rem !important;
+                max-height: 85vh !important;
+            }
+            
+            .auth-tab {
+                padding: 0.75rem 0.5rem !important;
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de carga -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-logo">TRADING ELITE</div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+    
+    <!-- ===== HEADER / NAVEGACIÓN ===== -->
+    <header class="main-header" id="main-header">
+        <div class="header-container">
+            <!-- Logo -->
+            <div class="brand">
+                <div class="logo">
+                    <span class="logo-text">EL LADO OCULTO</span>
+                    <span class="logo-sub">OPCIONES BINARIAS</span>
+                </div>
+                <div class="tagline">La Lógica del Precio</div>
+            </div>
+            
+            <!-- Navegación Principal -->
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    <li><a href="#inicio" class="nav-link active"><i class="fas fa-home"></i> Inicio</a></li>
+                    
+                    <!-- Menú desplegable Metodología -->
+                    <li class="dropdown">
+                        <a href="#metodologia" class="nav-link">
+                            <i class="fas fa-chart-line"></i> Metodología <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#accion-precio"><i class="fas fa-bullseye"></i> Acción del Precio</a></li>
+                            <li><a href="#logica-precio"><i class="fas fa-brain"></i> Lógica del Precio</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li><a href="#comunidad" class="nav-link"><i class="fas fa-users"></i> Comunidad</a></li>
+                    <li><a href="#calendario" class="nav-link"><i class="fas fa-calendar-alt"></i> Calendario</a></li>
+                    <li><a href="#pagos" class="nav-link"><i class="fas fa-crown"></i> Elite Access</a></li>
+                    <li><a href="#contacto" class="nav-link"><i class="fas fa-envelope"></i> Contacto</a></li>
+                </ul>
+                
+                <!-- Botones de Auth/Usuario -->
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" id="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <button class="btn btn-primary" id="register-btn">
+                        <i class="fas fa-user-plus"></i> Registro
+                    </button>
+                </div>
+                
+                <!-- Perfil de Usuario (se muestra cuando está logueado) -->
+                <div class="user-profile" id="user-profile">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="user-menu" id="user-menu">
+                        <div class="user-info">
+                            <div class="user-name">Usuario</div>
+                            <div class="user-plan">Plan: Free</div>
+                        </div>
+                        <a href="#dashboard" class="user-menu-item">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a href="#profile" class="user-menu-item">
+                            <i class="fas fa-user-cog"></i> Mi Perfil
+                        </a>
+                        <a href="#settings" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Configuración
+                        </a>
+                        <button class="user-menu-item logout" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Menú Móvil -->
+            <button class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== SECCIONES PRINCIPALES ===== -->
+    <main class="main-content">
+        <!-- HERO SECTION -->
+        <section class="hero" id="inicio">
+            <div class="hero-overlay"></div>
+            
+            <!-- Partículas binarias -->
+            <div class="binary-particles" id="binary-particles"></div>
+            
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="title-line">EL LADO OCULTO</span>
+                    <span class="title-line highlight">DE LAS OPCIONES BINARIAS</span>
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Descubre la <span class="text-neon">verdadera lógica del mercado</span> que nadie enseña.
+                    Aprende a leer el precio como un profesional y toma decisiones con confianza, no con esperanza.
+                </p>
+                
+                <div class="hero-cta">
+                    <a href="#metodologia" class="btn btn-primary btn-lg">
+                        <i class="fas fa-play-circle"></i> Ver Metodología
+                    </a>
+                    <a href="#pagos" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-rocket"></i> Acceso Inmediato
+                    </a>
+                </div>
+                
+                <!-- Stats REALES -->
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number neon-text" id="stats-traders">1</div>
+                        <div class="stat-label">Trader Activo</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number neon-text" id="stats-sessions">0</div>
+                        <div class="stat-label">Sesiones Hoy</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number neon-text" id="stats-posts">0</div>
+                        <div class="stat-label">Posts en Foro</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN METODOLOGÍA -->
+        <section class="section methodology" id="metodologia">
+            <div class="section-header">
+                <h2 class="section-title">Nuestra <span class="highlight">Metodología</span></h2>
+                <p class="section-subtitle">Dos pilares fundamentales para tu éxito en trading</p>
+            </div>
+            
+            <div class="methodology-grid">
+                <!-- Tarjeta Acción del Precio -->
+                <div class="method-card" id="accion-precio">
+                    <div class="method-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Acción del Precio</h3>
+                    <p>Lee el mercado sin indicadores. Identifica estructuras reales y toma decisiones basadas en precio puro.</p>
+                    <ul class="method-list">
+                        <li><i class="fas fa-check"></i> Patrones de velas profesionales</li>
+                        <li><i class="fas fa-check"></i> Soporte y resistencia dinámica</li>
+                        <li><i class="fas fa-check"></i> Entradas de alta probabilidad</li>
+                        <li><i class="fas fa-check"></i> Gestión de riesgo matemática</li>
+                    </ul>
+                    <button class="btn btn-outline" data-modal="accion-precio">
+                        <i class="fas fa-play"></i> Ver Demo
+                    </button>
+                </div>
+                
+                <!-- Tarjeta Lógica del Precio -->
+                <div class="method-card" id="logica-precio">
+                    <div class="method-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Lógica del Precio</h3>
+                    <p>Entiende el "por qué" detrás de cada movimiento. Psicología del mercado y toma de decisiones estratégicas.</p>
+                    <ul class="method-list">
+                        <li><i class="fas fa-check"></i> Psicología del trading</li>
+                        <li><i class="fas fa-check"></i> Gestión emocional avanzada</li>
+                        <li><i class="fas fa-check"></i> Análisis de flujos</li>
+                        <li><i class="fas fa-check"></i> Toma de decisiones bajo presión</li>
+                    </ul>
+                    <button class="btn btn-outline" data-modal="logica-precio">
+                        <i class="fas fa-play"></i> Ver Demo
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN COMUNIDAD -->
+        <section class="section community" id="comunidad">
+            <div class="section-header">
+                <h2 class="section-title">Comunidad <span class="highlight">Activa</span></h2>
+                <p class="section-subtitle">No operes solo. Únete a traders que comparten, aprenden y crecen juntos.</p>
+            </div>
+            
+            <!-- El foro se cargará aquí dinámicamente -->
+            <div class="forum-container" id="forum-container">
+                <!-- Cargado por forum.js -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN CALENDARIO -->
+        <section class="section calendar-section" id="calendario">
+            <div class="section-header">
+                <h2 class="section-title">Calendario <span class="highlight">en Vivo</span></h2>
+                <p class="section-subtitle">Clases, workshops y sesiones de trading programadas</p>
+            </div>
+            
+            <!-- El calendario se cargará aquí dinámicamente -->
+            <div class="calendar-container" id="calendar-container">
+                <!-- Cargado por calendar.js -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN PAGOS -->
+        <section class="section payments-section" id="pagos">
+            <div class="section-header">
+                <h2 class="section-title">Acceso <span class="highlight">ELITE</span></h2>
+                <p class="section-subtitle">Elige tu plan y método de pago preferido</p>
+            </div>
+            
+            <!-- El sistema de pagos se cargará aquí -->
+            <div class="payments-container" id="payments-container">
+                <!-- Cargado por payments.js -->
+            </div>
+        </section>
+
+        <!-- SECCIÓN TESTIMONIOS -->
+        <section class="section testimonials" id="testimonios">
+            <div class="section-header">
+                <h2 class="section-title">Primeros <span class="highlight">Testimonios</span></h2>
+                <p class="section-subtitle">Sé el primero en compartir tu experiencia con la comunidad</p>
+            </div>
+            
+            <div class="testimonials-grid" id="testimonials-container">
+                <!-- Los testimonios reales se cargarán aquí -->
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="main-footer" id="contacto">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">EL LADO OCULTO</div>
+                <p class="footer-tagline">La Lógica del Precio</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <div class="link-group">
+                    <h4>Metodología</h4>
+                    <a href="#accion-precio">Acción del Precio</a>
+                    <a href="#logica-precio">Lógica del Precio</a>
+                    <a href="#recursos">Recursos Gratis</a>
+                </div>
+                
+                <div class="link-group">
+                    <h4>Comunidad</h4>
+                    <a href="#comunidad">Foro Privado</a>
+                    <a href="#calendario">Sesiones en Vivo</a>
+                    <a href="#mentoria">Mentoría</a>
+                </div>
+                
+                <div class="link-group">
+                    <h4>Legal</h4>
+                    <a href="#disclaimer">Disclaimer</a>
+                    <a href="#privacidad">Política de Privacidad</a>
+                    <a href="#terminos">Términos de Uso</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>© 2024 El Lado Oculto de las Opciones Binarias. Todos los derechos reservados.</p>
+            <p class="disclaimer">
+                <i class="fas fa-exclamation-triangle"></i> 
+                ADVERTENCIA: El trading de opciones binarias conlleva un alto nivel de riesgo y puede no ser adecuado para todos los inversores. 
+                Los resultados pasados no garantizan resultados futuros. Solo arriesgue capital que esté dispuesto a perder.
+            </p>
+        </div>
+    </footer>
+
+    <!-- ===== MODALES GENERALES ===== -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+    
+    <!-- Modal Acción del Precio -->
+    <div class="modal" id="modal-accion-precio">
+        <div class="modal-header">
+            <h3><i class="fas fa-bullseye"></i> Acción del Precio</h3>
+            <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-content">
+            <p>Contenido demo de Acción del Precio...</p>
+        </div>
+    </div>
+    
+    <!-- Modal Lógica del Precio -->
+    <div class="modal" id="modal-logica-precio">
+        <div class="modal-header">
+            <h3><i class="fas fa-brain"></i> Lógica del Precio</h3>
+            <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-content">
+            <p>Contenido demo de Lógica del Precio...</p>
+        </div>
+    </div>
+
+    <!-- ===== TODOS LOS SCRIPTS ===== -->
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+    <script src="auth.js"></script>
+    <script src="forum.js"></script>
+    <script src="calendar.js"></script>
+    <script src="payments.js"></script>
+    
+    <!-- Script de Inicialización -->
+    <script>
+        // Ocultar pantalla de carga cuando todo esté listo
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 500);
+            }, 1000);
+        });
+        
+        // Inicializar todos los sistemas cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 PLATAFORMA TRADING ELITE - Inicializando sistemas...');
+        });
+    </script>
+</body>
+</html>
