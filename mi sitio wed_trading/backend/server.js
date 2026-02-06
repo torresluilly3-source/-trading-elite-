@@ -158,6 +158,236 @@ app.get('/api/auth/verify-email', async (req, res) => {
     }
 });
 
+// ============================================
+// RUTAS PARA FRONTEND - AGREGAR DESPUÉS DE AUTH
+// ============================================
+
+// 1. RUTAS DE PAGOS
+app.get('/api/payments/plans', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            plans: [
+                {
+                    id: 'free',
+                    name: 'Free',
+                    price: 0,
+                    features: [
+                        'Acceso básico al foro',
+                        'Análisis limitados', 
+                        'Soporte por email',
+                        'Comunidad básica'
+                    ],
+                    color: '#666'
+                },
+                {
+                    id: 'premium',
+                    name: 'Premium',
+                    price: 29,
+                    features: [
+                        'Todos los features Free',
+                        'Análisis avanzados',
+                        'Señales en tiempo real',
+                        'Soporte prioritario',
+                        'Webinars exclusivos'
+                    ],
+                    color: '#ffd700'
+                },
+                {
+                    id: 'pro',
+                    name: 'Pro Trader',
+                    price: 79,
+                    features: [
+                        'Todos los features Premium',
+                        'Señales premium + alertas',
+                        'Mentoría personalizada',
+                        'Herramientas avanzadas',
+                        'Acceso VIP a eventos'
+                    ],
+                    color: '#0af'
+                },
+                {
+                    id: 'vip',
+                    name: 'VIP Elite',
+                    price: 199,
+                    features: [
+                        'Todos los features Pro',
+                        'Soporte 24/7 dedicado',
+                        'Estrategias personalizadas',
+                        'Reuniones 1-on-1',
+                        'Acceso a beta features'
+                    ],
+                    color: '#f0f'
+                }
+            ]
+        }
+    });
+});
+
+app.get('/api/payments/transactions', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            transactions: []
+        }
+    });
+});
+
+// 2. RUTAS DE CALENDARIO
+app.get('/api/calendar/events', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            events: [
+                {
+                    id: '1',
+                    title: 'Webinar: Introducción al Trading',
+                    type: 'webinar',
+                    start_time: new Date().toISOString(),
+                    end_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+                    description: 'Webinar gratuito para principiantes',
+                    link: '#',
+                    location: 'Online',
+                    creator: { name: 'Juan Pérez', plan: 'pro' }
+                },
+                {
+                    id: '2',
+                    title: 'Análisis Mercado Mañana',
+                    type: 'analysis',
+                    start_time: new Date(Date.now() + 86400000).toISOString(), // Mañana
+                    description: 'Análisis diario del mercado',
+                    location: 'Sala de Trading',
+                    creator: { name: 'Sistema', plan: 'premium' }
+                }
+            ]
+        }
+    });
+});
+
+// 3. RUTAS DE FORO
+app.get('/api/forum/posts', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            posts: [
+                {
+                    id: '1',
+                    title: '¡Bienvenido a Trading Elite!',
+                    content: 'Esta es nuestra comunidad de traders. Comparte tus análisis y aprende de otros.',
+                    category: 'general',
+                    author: { 
+                        name: 'Admin', 
+                        plan: 'vip',
+                        avatarColor: getRandomColor()
+                    },
+                    created_at: new Date().toISOString(),
+                    likes: 15,
+                    comment_count: 3,
+                    tags: ['bienvenida', 'comunidad']
+                },
+                {
+                    id: '2',
+                    title: 'Análisis S&P 500 - Soporte clave',
+                    content: 'El índice muestra un soporte importante en 4200 puntos. Recomiendo atención a esta zona.',
+                    category: 'analysis',
+                    author: { 
+                        name: 'Trader Pro', 
+                        plan: 'pro',
+                        avatarColor: getRandomColor()
+                    },
+                    created_at: new Date(Date.now() - 86400000).toISOString(), // Ayer
+                    likes: 28,
+                    comment_count: 12,
+                    tags: ['SP500', 'análisis', 'mercado']
+                }
+            ]
+        }
+    });
+});
+
+// 4. RUTAS DE ESTADÍSTICAS
+app.get('/api/stats', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            activeUsers: users.filter(u => u.verified).length,
+            activePosts: 2, // Por los 2 posts de ejemplo
+            todaySessions: Math.floor(Math.random() * 50) + 10,
+            totalTrades: 156,
+            successRate: 78.5
+        }
+    });
+});
+
+// 5. RUTA DE PERFIL DE USUARIO (para /api/auth/me)
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+    const user = users.find(u => u.id === req.userId);
+    
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: 'Usuario no encontrado'
+        });
+    }
+    
+    res.json({
+        success: true,
+        data: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            plan: user.plan,
+            verified: user.verified,
+            avatarColor: user.avatarColor,
+            joinDate: user.createdAt
+        }
+    });
+});
+
+// Función middleware para autenticación (simple)
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Token no proporcionado'
+        });
+    }
+    
+    // Token simple: token_1678901234567_123
+    try {
+        const parts = token.split('_');
+        if (parts.length < 3) {
+            throw new Error('Token inválido');
+        }
+        
+        const userId = parseInt(parts[2]);
+        req.userId = userId;
+        next();
+    } catch (error) {
+        return res.status(403).json({
+            success: false,
+            message: 'Token inválido'
+        });
+    }
+}
+
+// ============================================
+// FIN DE RUTAS NUEVAS
+// ============================================
+
+// Ruta de prueba (ESTA YA LA TIENES)
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        message: 'Trading Elite API funcionando',
+        usersCount: users.length,
+        features: ['auth', 'payments', 'calendar', 'forum', 'stats'] // Actualizado
+    });
+});
+
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
     res.json({ 
@@ -178,4 +408,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Backend ejecutándose en: http://localhost:${PORT}`);
     console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+
 });
